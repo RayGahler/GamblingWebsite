@@ -14,7 +14,6 @@ class HandBlueprint:
         drawnCard = random.choice(self.Vals)
         drawnSuit = random.choice(self.CardSuits)
 
-        print(f"\n\nPulled a {drawnCard}\n\n")
         self.Cards.append(drawnCard)
         self.Suits.append(drawnSuit)
         

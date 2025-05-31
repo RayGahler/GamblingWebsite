@@ -352,5 +352,5 @@ if __name__ == "__main__":
 
     tasks.start()
     # Thread(target=startFront).start()
-
+    print("Starting the server")
     WebSockApp.run(app,port=5000,host="0.0.0.0")
