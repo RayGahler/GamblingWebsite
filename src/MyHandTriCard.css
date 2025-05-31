@@ -1,0 +1,15 @@
+.PlayerButton{
+    
+    margin-left: 25px;
+    width: 8%;
+    min-width: 85px;
+}
+
+.ButtonContainer {
+    border: dashed;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    
+}

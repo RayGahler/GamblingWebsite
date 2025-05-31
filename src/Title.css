@@ -1,0 +1,14 @@
+body{
+    background-color: rgba(75,75,75,255);
+}
+
+
+#divItemGroup{
+    border: solid;
+    border-radius: .8rem;
+    padding-top:1%;
+    padding-bottom: .5%;
+    max-width: 50%;
+    margin-left: 25%;
+    margin-top: 10rem;
+}

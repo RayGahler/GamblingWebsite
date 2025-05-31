@@ -1,0 +1,8 @@
+#Dealer{
+    border:"dashed";
+    margin-bottom:"5rem";
+    padding-bottom:"2rem";
+    position: fixed;
+    bottom: 95%;
+    width: 100%;
+}
