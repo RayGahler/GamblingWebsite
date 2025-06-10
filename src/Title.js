@@ -14,7 +14,6 @@ function TitleScreen(props){
 
     function joinGame(){
         
-        ws.emit("GiveName", [props.name, props.PlayerId])
         ws.emit("JoinGame", message)   
     
     }   

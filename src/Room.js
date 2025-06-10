@@ -6,6 +6,8 @@ function Room(props){
     var ws = props.ws
     var players = props.players
     var bet = 1
+    console.log("herte")
+    console.log(props.playerId)
 
     function startGame(){
         ws.emit("StartGame",[props.playerId,props.GameId,bet])
@@ -20,22 +22,18 @@ function Room(props){
     function setBet(e){
         bet = e.target.value
         document.getElementById("betText").value = bet
+        console.log(bet)
     }
 
     function PlayerCard(player){
-
-        return (<Card bg={player.isReady ? "success" : "danger"} style={{width:"18rem"}} >
+       return (<Card bg={player.isReady ? "success" : "danger"} style={{width:"18rem"}} >
 
                     <Card.Header style={{height : "10rem"}}>
                         <h3>{player.Name}</h3>
-                        {props.me.isHost ? 
-                        <Button style={{}} variant="warning" onClick={()=>{ws.emit("KickPlayer",[player.PlayerId,props.GameId])}}>X</Button>
-                        :
-                        <span></span>}
                     </Card.Header>
                     <Card.Body>
 
-                        {player.isReady ? <h3> {player.Name} is betting ${player.Bet}</h3> : <h3>Getting Ready...</h3>}   
+                        {player.isReady ? <h3> {player.Name} is betting {player.bet} Dollars</h3> : <h3>Getting Ready...</h3>}   
 
                     </Card.Body>
                     <Card.Footer>
@@ -47,6 +45,7 @@ function Room(props){
     }
 
     function MyCard(me){
+        console.log(me)
         return (<Card bg={me.isReady ? "success" : "danger"} style={{width:"18rem"}} >
 
             <Card.Header style={{height : "10rem"}}>
@@ -56,7 +55,7 @@ function Room(props){
 
                 <div>
                     <input type="range" min={1} max={me.Money} onChange={setBet}></input>
-                    <input id="betText" type="text" onChange={setBet} placeholder="1"></input>
+                    <input id="betText" type="text" onChange={setBet}></input>
                 </div>
 
             </Card.Body>
@@ -68,12 +67,12 @@ function Room(props){
         </Card>)
     }
 
+    console.log(props.me)
     return(
         <div>
 
             <div style={{width:"inherit", display:"flex", justifyContent:"center", alignContent:"space-around", marginBottom:"50px"}}>
                 {MyCard(props.me)}
-
             </div>
 
             <div style={{width:"inherit", display:"block"}}>

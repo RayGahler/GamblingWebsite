@@ -14,8 +14,10 @@ function MyHandBlackJack(props){
         ws.on("Timer", (t) => {
 
             if(t <= 0){
+                console.log("Timer expired");
                 ws.emit("CheckTime")
             }
+            console.log("Timer: " + t);
 
             setTimer(t)
             
@@ -49,6 +51,7 @@ function MyHandBlackJack(props){
         if(move === intendedMove){
             return
         }
+        console.log(intendedMove)
         if(props.myTurn){
             execute(move)
             setIntendedMove("None")

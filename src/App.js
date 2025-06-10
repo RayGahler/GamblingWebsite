@@ -63,6 +63,7 @@ function App() {
 		}
 
 		function getPlayerId(id) {
+			console.log("PlayerId: ", id)
 			if(!("BrainrotCasinoId" in sessionStorage)){
 				sessionStorage.setItem("BrainrotCasinoId",id)
 			}
@@ -85,6 +86,7 @@ function App() {
 		}
 
 		function getGameData(data) {
+			console.log("HELLO?????")
 			setGameData(data)
 			setPlayers(data.Players)
 

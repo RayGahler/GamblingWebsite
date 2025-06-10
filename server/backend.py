@@ -1,4 +1,5 @@
-from os import system
+import os
+from dotenv import load_dotenv
 from flask import Flask
 from flask import request
 from flask_socketio import SocketIO,send,emit,join_room,leave_room
@@ -9,13 +10,16 @@ from blackjack import BlackJack
 from triCard import TriCard
 from time import time,sleep
 from threading import Thread
-from mysql.connector import MySQLConnection as sqlConnector, pooling
-
-
+from sqlalchemy import create_engine, text
 app = Flask(__name__)
 WebSockApp = SocketIO(app)
 WebSockApp.init_app(app,cors_allowed_origins="*")
-db_pool = pooling.MySQLConnectionPool(pool_name="TheHouse", pool_size=10, pool_reset_session=True, user= "website", host = "127.0.0.1", password= "password", database= "Casino", ssl_disabled=True)
+
+load_dotenv()
+
+engine = create_engine(os.getenv("POSTGRES_URL"), pool_size=10, max_overflow=20, pool_timeout=30, pool_recycle=1800)
+
+
 
 #Takes Game Ids
 games = {}
@@ -250,24 +254,24 @@ def GiveName(data):
     Name,PlayerId = data
     people[PlayerId].Name = Name
     try:
-        sqlCon = db_pool.get_connection()
-        cursor = sqlCon.cursor()
-        cursor.execute("INSERT INTO Player VALUES (%s, %s, 10000)", (PlayerId, Name))
-        sqlCon.commit()
-        cursor.close()
-        sqlCon.close()
+        with engine.connect() as con:
+
+        
+            con.execute(text(f"INSERT INTO Player VALUES ({PlayerId}, '{Name}', 1000)"))
+            con.commit()
+    
     except Exception as e:
-        sendMessage(["Something Went Wrong", "Could not save", "bad"],request.sid)
+        pass
 
 @WebSockApp.on("MyData")
 def PutInDB(data):
-    sqlCon = db_pool.get_connection()
-    cursor = sqlCon.cursor(buffered=True)
-    cursor.execute(f"SELECT * FROM Player WHERE PlayerId = {data}")
-    (PlayerId, PlayerName, PlayerMoney) = cursor.fetchall()[0]
-    
-    cursor.close()
-    sqlCon.close()
+    pass
+    with engine.connect() as con:
+        
+        res = con.execute(text(f"SELECT * FROM Player WHERE PlayerId = {data}"))
+        fin = res.fetchall()
+        (PlayerId, PlayerName, PlayerMoney) = fin[0]
+        
     temp = sidToPlayerId.pop(request.sid)
     pidToSID.pop(temp)
     people.pop(temp)
@@ -301,26 +305,26 @@ def Connected():
     sidToPlayerId[request.sid] = pid
     pidToSID[pid] = request.sid
     people[pid] = Person(pid)
+    print(f"Player {pid} connected")
 
     WebSockApp.emit("give_PlayerId", pid,to=request.sid)
+    print("data sent to the client")
 
 
 @WebSockApp.on("disconnect")
 def Disconnect():
     global count
-
     PlayerId = getPlayerId(request.sid)
     player = people[PlayerId]
     if player.inGame:
         game = games[player.Game]
         game.removePlayer(PlayerId)
     
-    con = db_pool.get_connection()
-    cursor= con.cursor() 
-    cursor.execute("UPDATE Player SET PlayerMoney = %s WHERE PlayerId = %s", (player.Money, PlayerId))
-    cursor.close()
-    con.commit()
-    con.close()
+    with engine.connect() as con:
+        if player.Money <= 0:
+            player.Money = 1000
+        con.execute(text(f"UPDATE Player SET PlayerMoney = {player.Money} WHERE PlayerId = {PlayerId}"))
+        con.commit()
 
     people.pop(PlayerId)
     sidToPlayerId.pop(request.sid)
@@ -343,8 +347,6 @@ def targ():
         WebSockApp.send([x[0], x[1], Colors[x[2].lower()]])
         sleep(.01)
 
-def startFront():
-    system("cd .. && npm start")
 
 
 if __name__ == "__main__":

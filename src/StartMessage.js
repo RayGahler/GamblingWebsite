@@ -14,6 +14,7 @@ export default function StartMessage(props){
 
     function PlayerGuild(name){
         props.setPlayerGuild(name)
+        props.setNickName(document.getElementById("NameInput").value)
     }
     
 
