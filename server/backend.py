@@ -17,7 +17,7 @@ WebSockApp.init_app(app,cors_allowed_origins="*")
 
 load_dotenv()
 
-engine = create_engine(os.getenv("POSTGRES_URL"), pool_size=10, max_overflow=20, pool_timeout=30, pool_recycle=1800)
+# engine = create_engine(os.getenv("POSTGRES_URL"), pool_size=10, max_overflow=20, pool_timeout=30, pool_recycle=1800)
 
 
 
@@ -253,36 +253,36 @@ def dealersTurn(GameId):
 def GiveName(data):
     Name,PlayerId = data
     people[PlayerId].Name = Name
-    try:
-        with engine.connect() as con:
+    # try:
+    #     with engine.connect() as con:
 
         
-            con.execute(text(f"INSERT INTO Player VALUES ({PlayerId}, '{Name}', 1000)"))
-            con.commit()
-            con.close()
+    #         con.execute(text(f"INSERT INTO Player VALUES ({PlayerId}, '{Name}', 1000)"))
+    #         con.commit()
+    #         con.close()
     
-    except Exception as e:
-        pass
+    # except Exception as e:
+    #     pass
 
 @WebSockApp.on("MyData")
 def PutInDB(data):
     pass
-    with engine.connect() as con:
+    # # with engine.connect() as con:
         
-        res = con.execute(text(f"SELECT * FROM Player WHERE PlayerId = {data}"))
-        fin = res.fetchall()
-        (PlayerId, PlayerName, PlayerMoney) = fin[0]
-        con.close()
+    # #     res = con.execute(text(f"SELECT * FROM Player WHERE PlayerId = {data}"))
+    # #     fin = res.fetchall()
+    # #     (PlayerId, PlayerName, PlayerMoney) = fin[0]
+    # #     con.close()
         
-    temp = sidToPlayerId.pop(request.sid)
-    pidToSID.pop(temp)
-    people.pop(temp)
+    # temp = sidToPlayerId.pop(request.sid)
+    # pidToSID.pop(temp)
+    # people.pop(temp)
 
-    sidToPlayerId[request.sid] = PlayerId
-    pidToSID[PlayerId] = request.sid
-    people[PlayerId] = Person(PlayerId, PlayerName, PlayerMoney)
+    # sidToPlayerId[request.sid] = PlayerId
+    # pidToSID[PlayerId] = request.sid
+    # people[PlayerId] = Person(PlayerId, PlayerName, PlayerMoney)
 
-    emit("RETURN", {"PlayerId": PlayerId, "PlayerName": PlayerName, "PlayerMoney": PlayerMoney}, to=request.sid)
+    # emit("RETURN", {"PlayerId": PlayerId, "PlayerName": PlayerName, "PlayerMoney": PlayerMoney}, to=request.sid)
 
 # @WebSockApp.on("DataBase")
 # def DataBase(data):
@@ -314,20 +314,23 @@ def Connected():
 
 
 @WebSockApp.on("disconnect")
-def Disconnect():
+def Disconnect(thing = None):
     global count
+    if thing:
+        print("uuummmm")
+        print(thing)
     PlayerId = getPlayerId(request.sid)
     player = people[PlayerId]
     if player.inGame:
         game = games[player.Game]
         game.removePlayer(PlayerId)
     
-    with engine.connect() as con:
-        if player.Money <= 0:
-            player.Money = 1000
-        con.execute(text(f"UPDATE Player SET PlayerMoney = {player.Money} WHERE PlayerId = {PlayerId}"))
-        con.commit()
-        con.close()
+    # with engine.connect() as con:
+    #     if player.Money <= 0:
+    #         player.Money = 1000
+    #     con.execute(text(f"UPDATE Player SET PlayerMoney = {player.Money} WHERE PlayerId = {PlayerId}"))
+    #     con.commit()
+    #     con.close()
 
     people.pop(PlayerId)
     sidToPlayerId.pop(request.sid)
