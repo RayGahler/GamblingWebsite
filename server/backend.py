@@ -259,6 +259,7 @@ def GiveName(data):
         
             con.execute(text(f"INSERT INTO Player VALUES ({PlayerId}, '{Name}', 1000)"))
             con.commit()
+            con.close()
     
     except Exception as e:
         pass
@@ -271,6 +272,7 @@ def PutInDB(data):
         res = con.execute(text(f"SELECT * FROM Player WHERE PlayerId = {data}"))
         fin = res.fetchall()
         (PlayerId, PlayerName, PlayerMoney) = fin[0]
+        con.close()
         
     temp = sidToPlayerId.pop(request.sid)
     pidToSID.pop(temp)
@@ -325,6 +327,7 @@ def Disconnect():
             player.Money = 1000
         con.execute(text(f"UPDATE Player SET PlayerMoney = {player.Money} WHERE PlayerId = {PlayerId}"))
         con.commit()
+        con.close()
 
     people.pop(PlayerId)
     sidToPlayerId.pop(request.sid)
