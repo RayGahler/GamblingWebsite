@@ -79,7 +79,6 @@ build/          # Production build output
 - `src/BlackJack.js`, `src/TriCard.js` — Game components
 
 ## Notes
-- For production, use a proper WSGI server and secure CORS settings.
 - Make sure your frontend and backend use compatible socket.io versions.
 
 ## License
