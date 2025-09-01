@@ -1,3 +1,7 @@
+
+import eventlet
+eventlet.monkey_patch()
+
 import os
 from dotenv import load_dotenv
 from flask import Flask
@@ -8,12 +12,20 @@ from random import randint
 from Games import Person
 from blackjack import BlackJack
 from triCard import TriCard
-from time import time,sleep
+from time import time
 from threading import Thread
 from sqlalchemy import create_engine, text
+import eventlet.wsgi
+
+print("hai")
 app = Flask(__name__)
-WebSockApp = SocketIO(app)
+
+print("hai")
+WebSockApp = SocketIO(app, async_mode="eventlet")
+
+print("hai")
 WebSockApp.init_app(app,cors_allowed_origins="*")
+print("hai")
 
 load_dotenv()
 
@@ -115,7 +127,7 @@ def KickPlayer(data):
         leave_room(GameId, pidToSID[PlayerId])
         WebSockApp.send(["Player Kicked", "Player has been kicked", Colors["bad"]],to=request.sid)
         emit("PlayerLeft", curGame.JsonPlayers(),to=GameId)
-        emit("Kicked", "LMAO", to=pidToSID[PlayerId])
+    emit("Kicked", "You have been removed from the game.", to=pidToSID[PlayerId])
         WebSockApp.send(["Kicked", "You have been kicked", Colors["bad"]],to=request.sid)
 
     
@@ -143,7 +155,7 @@ def Start(data):
     Data has the
     Player id
     Game id
-    and the players bet
+    players bet
     """
     PlayerId,GameId, bet=data
     curGame = games[GameId]
@@ -209,7 +221,7 @@ def Execute(data):
         curPlayer.IntendMove(data["Intended"])
     curPlayerGame= games[curPlayer.Game]
     if not curPlayer.Turn:
-        sendMessage(["Not your turn", "Hold the fuck on you stupid prick", "bad"],request.sid)
+        sendMessage(["Not your turn", "Wait your turn", "bad"],request.sid)
         return
         
     GameData = curPlayerGame.ExecuteMove(curPlayer)
@@ -266,23 +278,25 @@ def GiveName(data):
 
 @WebSockApp.on("MyData")
 def PutInDB(data):
-    pass
+    
     # # with engine.connect() as con:
         
     # #     res = con.execute(text(f"SELECT * FROM Player WHERE PlayerId = {data}"))
     # #     fin = res.fetchall()
     # #     (PlayerId, PlayerName, PlayerMoney) = fin[0]
     # #     con.close()
-        
-    # temp = sidToPlayerId.pop(request.sid)
-    # pidToSID.pop(temp)
-    # people.pop(temp)
+    print(data)
+    print("RETURN\n\n\n")
+    PlayerMoney,PlayerId,PlayerTeam,PlayerName = data.values()
+    temp = sidToPlayerId.pop(request.sid)
+    pidToSID.pop(temp)
+    people.pop(temp)
 
-    # sidToPlayerId[request.sid] = PlayerId
-    # pidToSID[PlayerId] = request.sid
-    # people[PlayerId] = Person(PlayerId, PlayerName, PlayerMoney)
+    sidToPlayerId[request.sid] = PlayerId
+    pidToSID[PlayerId] = request.sid
+    people[PlayerId] = Person(PlayerId, PlayerName, PlayerMoney)
 
-    # emit("RETURN", {"PlayerId": PlayerId, "PlayerName": PlayerName, "PlayerMoney": PlayerMoney}, to=request.sid)
+    emit("RETURN", {"PlayerId": PlayerId, "PlayerName": PlayerName, "PlayerMoney": PlayerMoney}, to=request.sid)
 
 # @WebSockApp.on("DataBase")
 # def DataBase(data):
@@ -344,21 +358,8 @@ def Recieve(message):
     
     print(message)
 
-def targ():
-
-
-    while 1:
-        x = input()
-        x = x.split(";")
-        WebSockApp.send([x[0], x[1], Colors[x[2].lower()]])
-        sleep(.01)
-
-
-
 if __name__ == "__main__":
-    tasks = Thread(target=targ)
+    print("hewwo")
 
-    tasks.start()
-    # Thread(target=startFront).start()
     print("Starting the server")
-    WebSockApp.run(app,port=5000,host="0.0.0.0")
+    WebSockApp.run(app, port=5000, host="0.0.0.0", debug=True)

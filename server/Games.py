@@ -131,7 +131,7 @@ class GamesBlueprint:
         self.Host = 0
         self.canJoin = False
         self.Turn = 0
-        self.timer = 15
+        self.timer = 3000
         self.ws = None
         self.Thread = None if hasTimer else -1
         self.goTimer = False
@@ -140,7 +140,7 @@ class GamesBlueprint:
         self.Hands = {}
         self.canJoin = True
         self.Turn = 0
-        self.timer = 30
+        self.timer = 3000
         self.ws = None
         self.thread :threading.Thread = None
 
@@ -153,13 +153,12 @@ class GamesBlueprint:
 
 
     def countDown(self):
+        import eventlet
         while self.goTimer:
             print(self.timer)
             if self.timer == 0:
                 self.goTimer = False
-                
-            
-            sleep(1)
+            eventlet.sleep(1)
             self.timer -= 1
             self.ws.emit("Timer",self.timer,to=self.id)
         

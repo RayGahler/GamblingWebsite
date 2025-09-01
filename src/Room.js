@@ -90,7 +90,7 @@ function Room(props){
                 })}
             </ul>)
             :
-            <p>Lonely Fuck</p>
+            <p>Waiting for players...</p>
 }
             
             </div>

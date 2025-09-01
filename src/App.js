@@ -19,165 +19,126 @@ function App() {
 	const [playerId,setPlayerId] = useState(0)
 	const [players,setPlayers] = useState([])
 	const [playerGuild, setPlayerGuild] = useState("")
-	const [gameMode, setGameMode] = useState("Blackjack")
 	const [nickName, setNickName] = useState("")
+	const [gameMode, setGameMode] = useState("Blackjack");
+	const Me = useRef({});
 
-
-	const Me = useRef({})
-
-	function makeToastMessage(Header,Message,Color){
-		//ITS THE FUCKING TOAST
-		//ITS FUCKING UP THE TIMER
-		toast(Message,{autoClose:2000},0)
-		
+	function makeToastMessage(Header, Message, Color) {
+		toast(Message, { autoClose: 2000 }, 0);
 	}
-
-
 	useEffect(() => {
-
-		
-
-		function returnPlayer(data){
+		// Define all handler functions outside ws.on/off for stable references
+		function returnPlayer(data) {
 			setNickName(data.PlayerName)
 			setMoney(data.PlayerMoney)
-			if (data.PlayerMoney === 0){
+			if (data.PlayerMoney === 0) {
 				setMoney(1000)
 			}
 			setPlayerId(data.PlayerId)
-			setPlayerGuild("LMAO")
+			setPlayerGuild("PlayerGuild")
 		}
-
 		function connected() {
-			if("BrainrotCasino" in sessionStorage){
-				(sessionStorage.getItem("BrainrotCasinoId"))
-				ws.emit("MyData",sessionStorage.getItem("BrainrotCasinoId"))
+			if ("BrainrotCasino" in sessionStorage) {
+				console.log(JSON.parse(sessionStorage.getItem("BrainrotCasino")))
+				ws.emit("MyData", JSON.parse(sessionStorage.getItem("BrainrotCasino")))
 				makeToastMessage("Connected", "Getting your data...", "success")
-			}
-			else{
+			} else {
 				makeToastMessage("Connected", "Welcome, please enter your name", "success")
 			}
 		}
-
 		function messaged(message) {
-			makeToastMessage(message[0],message[1],message[2])
+			makeToastMessage(message[0], message[1], message[2])
 		}
-
 		function getPlayerId(id) {
 			console.log("PlayerId: ", id)
-			if(!("BrainrotCasinoId" in sessionStorage)){
-				sessionStorage.setItem("BrainrotCasinoId",id)
+			if (!("BrainrotCasinoId" in sessionStorage)) {
+				sessionStorage.setItem("BrainrotCasinoId", id)
 			}
 			setPlayerId(id)
 		}
-
 		function joined(data) {
 			setInGame(true)
 			setGameCode(data.Id)
 			setPlayers(data.Players)
 		}
-
 		function err(e) {
 			console.error("Error: ", e);
 		}
-
 		function create(GameId) {
 			setGameCode(GameId)
 			setInGame(true)
 		}
-
 		function getGameData(data) {
 			console.log("HELLO?????")
 			setGameData(data)
 			setPlayers(data.Players)
-
 		}
-
 		function changeMoney(amount) {
+        	sessionStorage.setItem("BrainrotCasino", JSON.stringify({money:amount,PlayerId:playerId, team:playerGuild,PlayerName:nickName}))
 			setMoney(amount)
 		}
-		
-		function timer(t){
-			console.log(t)
-		}
-
-		function Ready(lobby){
+		function Ready(lobby) {
 			setPlayers(lobby)
 		}
-
-		function playerLeft(lobbyData){
+		function playerLeft(lobbyData) {
 			setPlayers(lobbyData)
 		}
-
-		function KickedEvent(data){
+		function KickedEvent(data) {
 			setGameCode(0)
 			setInGame(false)
 			setGameData({})
 			setPlayers([])
-			
 		}
-
-		ws.on("SaveData", ()=> {
-			ws.emit("DataBase", {PlayerId: playerId, PlayerName: nickName, PlayerMoney: Money})
-		})
-
+		function playerJoined(data) {
+			setPlayers(data)
+		}
+		function itsMe(player) {
+			Me.current = player
+		}
+		// Register listeners
+		ws.on("SaveData", saveDataHandler)
 		ws.on("RETURN", returnPlayer)
 		ws.on("connect", connected)
 		ws.on("message", messaged)
 		ws.on("give_PlayerId", getPlayerId)
-		ws.on("OK", () => {
-			console.log("DAWG")
-		})
+		ws.on("OK", okHandler)
 		ws.on("Joined", joined)
 		ws.on("Failed", err)
 		ws.on("Created", create)
 		ws.on("GameData", getGameData)
 		ws.on("ChangeMoney", changeMoney)
-		ws.on("Timer",timer)
-		ws.on("ReadyUp",Ready)
-		ws.on("Kicked",KickedEvent)
-
+		ws.on("ReadyUp", Ready)
+		ws.on("Kicked", KickedEvent)
 		ws.on("PlayerLeft", playerLeft)
-		ws.on("PlayerJoined", (data) => {
-            
-            setPlayers(data)
-        })
-		ws.on("itsMe", player => {
-            Me.current = player
-        })
+		ws.on("PlayerJoined", playerJoined)
+		ws.on("itsMe", itsMe)
+		// Handler function definitions for inline listeners
+		function saveDataHandler() {
+			ws.emit("DataBase", { PlayerId: playerId, PlayerName: nickName, PlayerMoney: Money })
+		}
+		function okHandler() {
+			console.log("DAWG")
+		}
+		// Cleanup
 		return () => {
-			
-			ws.off("SaveData", ()=> {
-			// ws.emit("DataBase", {PlayerId: playerId, PlayerName: nickName, PlayerMoney: Money})
-		})
-
-			ws.off("ReturnPlayer", returnPlayer)
+			ws.off("SaveData", saveDataHandler)
+			ws.off("RETURN", returnPlayer)
 			ws.off("connect", connected)
 			ws.off("message", messaged)
 			ws.off("give_PlayerId", getPlayerId)
-			ws.off("OK", () => {
-				console.log("DAWG")
-			})
+			ws.off("OK", okHandler)
 			ws.off("Joined", joined)
 			ws.off("Failed", err)
 			ws.off("Created", create)
 			ws.off("GameData", getGameData)
 			ws.off("ChangeMoney", changeMoney)
-			ws.off("timer",timer)
-			ws.off("ReadyUp",Ready)
-			ws.off("Kicked",KickedEvent)
-			
-			
-			ws.off("PlayerJoined", (data) => {
-                setPlayers(data)
-            })
-
-			ws.off("itsMe", player => {
-				Me.current = player
-			})
+			ws.off("ReadyUp", Ready)
+			ws.off("Kicked", KickedEvent)
+			ws.off("PlayerLeft", playerLeft)
+			ws.off("PlayerJoined", playerJoined)
+			ws.off("itsMe", itsMe)
 		}
-
-
-	})
+	}, [Money, nickName, playerId, playerGuild])
 
 	return (
 		<div className="App">

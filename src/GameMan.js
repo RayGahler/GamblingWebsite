@@ -25,7 +25,7 @@ function GameManager(props){
         case "TriCard":
             return (<TriCard GameId={gameCode} ws={ws} setInGame={setInGame} setMoney={setMoney} Me={Me} GameData={GameData} GamedataHandle={setGameData} Money={Money} lobbyData={players} inGameHandle = {setInGame} gameCodeHandle = {setGameCode} ></TriCard>)
         default:
-            return(<h1>wtf</h1>)
+            return(<h1>Unknown game mode</h1>)
     }
 }
 
